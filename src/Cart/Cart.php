@@ -6,6 +6,7 @@ use Azuriom\Plugin\Shop\Models\Concerns\Buyable;
 use Azuriom\Plugin\Shop\Models\Coupon;
 use Azuriom\Plugin\Shop\Models\Giftcard;
 use Azuriom\Plugin\Shop\Models\Package;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Collection;
@@ -357,13 +358,21 @@ class Cart implements Arrayable
         $content = $session->get('shop.cart', []);
 
         if (! empty($content['coupons'])) {
-            $this->coupons = Coupon::whereIn('code', $content['coupons'])->get()->keyBy('id');
+            $this->coupons = Coupon::active()
+                ->whereIn('code', $content['coupons'])
+                ->with(['payments' => fn (Builder $q) => $q->scopes('completed')])
+                ->get()
+                ->reject(fn (Coupon $coupon) => $coupon->hasReachLimit(shop_user()))
+                ->keyBy('id');
         } else {
             $this->coupons = collect();
         }
 
         if (! empty($content['giftcards'])) {
-            $this->giftcards = Giftcard::whereIn('code', $content['giftcards'])->get()->keyBy('id');
+            $this->giftcards = Giftcard::active()
+                ->whereIn('code', $content['giftcards'])
+                ->get()
+                ->keyBy('id');
         } else {
             $this->giftcards = collect();
         }

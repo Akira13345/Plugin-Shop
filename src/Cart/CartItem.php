@@ -78,7 +78,7 @@ class CartItem implements Arrayable
 
         $this->quantity = min($this->hasQuantity() ? $quantity : 1, $maxQuantity);
 
-        if ($this->quantity <= 0) {
+        if ($this->quantity <= 0 && $this->cart->has($this->buyable)) {
             $this->cart->remove($this->buyable);
         }
     }

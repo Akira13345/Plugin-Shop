@@ -49,7 +49,7 @@ class SettingController extends Controller
         $data = $this->validate($request, [
             'currency' => ['required', Rule::in(Currencies::codes())],
             'goal' => ['nullable', 'integer', 'min:0'],
-            'webhook' => ['nullable', 'url'],
+            'webhook' => ['nullable', 'url:http,https'],
             'commands' => ['sometimes', 'nullable', 'array'],
             'terms' => ['required_with:terms_required', 'nullable', 'string'],
         ]);

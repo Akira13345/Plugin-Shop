@@ -86,10 +86,15 @@ class Coupon extends Model
             return false;
         }
 
-        $count = $this->payments()
-            ->scopes('completed')
-            ->where('user_id', $user->id)
-            ->count();
+        $count = $this->relationLoaded('payments')
+            ? $this->payments
+                ->filter(fn (Payment $payment) => $payment->isCompleted())
+                ->filter(fn (Payment $payment) => (int) $payment->user_id === $user->id)
+                ->count()
+            : $this->payments()
+                ->scopes('completed')
+                ->where('user_id', $user->id)
+                ->count();
 
         return $count >= $this->user_limit;
     }
